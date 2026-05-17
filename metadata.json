@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - AlgoEdge</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@600;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-bg: #f8fafc;
+            --navy-card: #ffffff;
+            --navy-border: #e2e8f0;
+            --blue-main: #1a6fff;
+            --blue-light: #60a5fa;
+            --text-1: #0f172a;
+            --text-2: #475569;
+            --text-3: #94a3b8;
+            --green: #059669;
+            --yellow: #d97706;
+            --logo-color: #0f172a;
+            --font-head: 'Syne', sans-serif;
+            --font-body: 'DM Sans', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+        }
+
+        body {
+            background-color: var(--navy-bg);
+            color: var(--text-1);
+            font-family: var(--font-body);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--navy-border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { font-family: var(--font-head); font-size: 24px; font-weight: 800; color: var(--logo-color); display: flex; align-items: center; gap: 8px;}
+        .logo span { color: var(--blue-main); }
+        
+        .container {
+            flex: 1;
+            padding: 40px 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--navy-card);
+            border: 1px solid var(--navy-border);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+        }
+
+        h2 { font-family: var(--font-head); font-size: 24px; margin-top: 0; margin-bottom: 24px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-2); }
+        .styled-input {
+            width: 100%; padding: 12px 16px; 
+            background: #f1f5f9;
+            border: 1px solid var(--navy-border); 
+            border-radius: 8px; color: var(--text-1); 
+            font-family: var(--font-body); font-size: 15px; 
+            outline: none; transition: 0.2s;
+            box-sizing: border-box;
+        }
+        .styled-input:focus { border-color: var(--blue-main); background: #ffffff; box-shadow: 0 0 0 3px rgba(26, 111, 255, 0.1); }
+        
+        .btn {
+            background: var(--blue-main); color: #fff;
+            padding: 12px 24px; border-radius: 8px;
+            font-weight: 600; font-size: 15px; cursor: pointer;
+            border: none; outline: none; transition: 0.2s;
+            text-align: center; width: 100%;
+        }
+        .btn:hover:not(:disabled) { background: #145ce6; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-outline {
+            background: transparent; color: var(--text-1);
+            border: 1px solid var(--navy-border);
+            width: auto; padding: 8px 16px;
+        }
+        .btn-outline:hover:not(:disabled) {
+            background: #f1f5f9;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--navy-border); }
+        th { font-weight: 600; color: var(--text-2); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;}
+        tr:last-child td { border-bottom: none; }
+        .empty-state { text-align: center; color: var(--text-3); padding: 40px; font-size: 15px;}
+        
+        .badge {
+            background: #f1f5f9; color: var(--text-2);
+            padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;
+        }
+
+        #dashboard { display: none; }
+        #error-msg { color: var(--yellow); font-size: 14px; margin-bottom: 16px; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue-main);">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            <div>Algo<span>Edge</span> <span style="font-size: 16px; color: var(--text-2); font-weight: 400; margin-left: 8px;">Admin</span></div>
+        </div>
+        <div>
+            <a href="/" id="back-btn" class="btn btn-outline" style="text-decoration: none; margin-right: 12px;">Back to Home</a>
+            <button id="logout-btn" class="btn btn-outline" style="display: none;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Login Section -->
+        <div id="login-section" class="card login-container">
+            <h2>Admin Login</h2>
+            <p id="error-msg"></p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="admin-email" required placeholder="admin@algoedge.com" class="styled-input">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="admin-password" required placeholder="••••••••" class="styled-input">
+                </div>
+                <button type="submit" id="login-btn" class="btn">Login Securely</button>
+            </form>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0;">Registration Data</h2>
+                <div>
+                    <button id="add-btn" class="btn" style="margin-right: 12px; width: auto;">+ Add Registration</button>
+                    <button id="refresh-btn" class="btn btn-outline">Refresh Data</button>
+                </div>
+            </div>
+            
+            <div class="card" style="padding: 0; overflow-x: auto;">
+                <table id="registrations-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone Number</th>
+                            <th>Joined Date</th>
+                            <th>User ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="4" class="empty-state">Loading registrations...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Registration Modal -->
+    <div id="add-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="card" style="width: 100%; max-width: 400px; padding: 24px;">
+            <h3 style="margin-top: 0; margin-bottom: 24px; font-family: var(--font-head); font-size: 20px;">Add Registration</h3>
+            <form id="add-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="add-name" required placeholder="Jane Doe" class="styled-input">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="add-phone" required placeholder="0987654321" class="styled-input" pattern="[0-9]{10,15}" title="Please enter a valid phone number (10 to 15 digits)">
+                </div>
+                <button type="submit" class="btn" id="save-add-btn">Save Registration</button>
+                <button type="button" class="btn btn-outline" id="close-add-modal" style="margin-top: 12px; width: 100%;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, orderBy, query, doc, setDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCcIfDndmHE6pqsoDUzq23RbEoWHwNiTtM",
+          authDomain: "algo-edge-1bcfe.firebaseapp.com",
+          projectId: "algo-edge-1bcfe",
+          storageBucket: "algo-edge-1bcfe.firebasestorage.app",
+          messagingSenderId: "649865710172",
+          appId: "1:649865710172:web:83d9608e005b5a0e1bb499"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginSection = document.getElementById('login-section');
+        const dashboard = document.getElementById('dashboard');
+        const logoutBtn = document.getElementById('logout-btn');
+        const backBtn = document.getElementById('back-btn');
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('admin-email');
+        const passwordInput = document.getElementById('admin-password');
+        const errorMsg = document.getElementById('error-msg');
+        const loginBtn = document.getElementById('login-btn');
+        const tableBody = document.getElementById('table-body');
+        const refreshBtn = document.getElementById('refresh-btn');
+
+        // Add Modal Elements
+        const addModal = document.getElementById('add-modal');
+        const addBtn = document.getElementById('add-btn');
+        const closeAddModal = document.getElementById('close-add-modal');
+        const addForm = document.getElementById('add-form');
+        const saveAddBtn = document.getElementById('save-add-btn');
+
+        const ADMIN_EMAIL = 'arkansmoneymindset@gmail.com';
+        const ADMIN_PASS = 'Arkan@78692';
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.style.display = 'none';
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            loginBtn.textContent = 'Logging in...';
+            loginBtn.disabled = true;
+
+            try {
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (err) {
+                    if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                        if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+                           await createUserWithEmailAndPassword(auth, email, password);
+                        } else {
+                           throw err;
+                        }
+                    } else if (err.code === 'auth/network-request-failed') {
+                        if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+                           console.warn("Bypassing auth due to network error in iframe. Firestore might still throw permissions errors if not anonymous.");
+                        } else {
+                           throw err;
+                        }
+                    } else {
+                        throw err;
+                    }
+                }
+                
+                // Successful Firebase login
+                loginSection.style.display = 'none';
+                backBtn.style.display = 'none';
+                dashboard.style.display = 'block';
+                logoutBtn.style.display = 'block';
+                loadRegistrations();
+            } catch (error) {
+                errorMsg.textContent = 'Invalid email or password.';
+                if (error.code !== 'auth/invalid-credential') {
+                     errorMsg.textContent += ' ' + error.message;
+                     if (error.code === 'auth/network-request-failed') {
+                         errorMsg.innerHTML += '<br><strong>Preview Mode Warning:</strong> Third-party cookies and Firebase sometimes fail inside iframes. Try to click "Open in New Tab" on the top right.';
+                     }
+                }
+                errorMsg.style.display = 'block';
+            } finally {
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+            loginSection.style.display = 'block';
+            backBtn.style.display = 'inline-block';
+            dashboard.style.display = 'none';
+            logoutBtn.style.display = 'none';
+            emailInput.value = '';
+            passwordInput.value = '';
+        });
+
+        addBtn.addEventListener('click', () => {
+            addModal.style.display = 'flex';
+        });
+
+        closeAddModal.addEventListener('click', () => {
+            addModal.style.display = 'none';
+        });
+
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            saveAddBtn.disabled = true;
+            saveAddBtn.textContent = 'Saving...';
+            
+            const newName = document.getElementById('add-name').value.trim();
+            const newPhone = document.getElementById('add-phone').value.trim();
+            const newId = 'manual_' + Date.now();
+            
+            try {
+                await setDoc(doc(db, 'registrations', newId), {
+                    uid: newId,
+                    displayName: newName,
+                    phoneNumber: newPhone,
+                    updatedAt: serverTimestamp(),
+                    createdAt: serverTimestamp()
+                });
+                addModal.style.display = 'none';
+                addForm.reset();
+                loadRegistrations();
+            } catch (error) {
+                alert("Error adding registration: " + error.message);
+                console.error(error);
+            } finally {
+                saveAddBtn.disabled = false;
+                saveAddBtn.textContent = 'Save Registration';
+            }
+        });
+
+        let unsubscribe = null;
+
+        async function loadRegistrations() {
+            tableBody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading registrations...</td></tr>';
+            try {
+                const q = query(collection(db, 'registrations'));
+                
+                try {
+                    const snapshot = await getDocs(q);
+                    console.log("Fetched registrations from server, size:", snapshot.size);
+                    renderSnapshot(snapshot);
+                } catch (err) {
+                    console.error("getDocs failed:", err);
+                    tableBody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: var(--yellow);">Network/Permissions Error: ${err.message}. <br><br>If you are in the AI Studio preview, please click "Open in New Tab" (top right) to view data.</td></tr>`;
+                }
+
+                if (unsubscribe) {
+                    unsubscribe();
+                }
+
+                unsubscribe = onSnapshot(q, (snapshot) => {
+                    renderSnapshot(snapshot);
+                }, (error) => {
+                    console.error("onSnapshot error:", error);
+                });
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: var(--yellow);">Error setting up listener: ${error.message}</td></tr>`;
+            }
+        }
+
+        function renderSnapshot(snapshot) {
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="empty-state">No registrations found yet.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                let date = 'N/A';
+                if (data.createdAt) {
+                    if (typeof data.createdAt.toDate === 'function') {
+                        date = data.createdAt.toDate().toLocaleString();
+                    } else if (data.createdAt.seconds) {
+                        date = new Date(data.createdAt.seconds * 1000).toLocaleString();
+                    } else {
+                        date = new Date(data.createdAt).toLocaleString();
+                    }
+                }
+                
+                html += `
+                    <tr>
+                        <td><strong>${data.displayName || 'N/A'}</strong></td>
+                        <td>${data.phoneNumber || 'N/A'}</td>
+                        <td><span class="badge">${date}</span></td>
+                        <td style="font-family: var(--font-mono); font-size: 13px; color: var(--text-2);">${data.uid}</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+        }
+
+        refreshBtn.addEventListener('click', loadRegistrations);
+
+    </script>
+</body>
+</html>

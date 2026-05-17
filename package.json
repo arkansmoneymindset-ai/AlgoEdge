@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoEdge | Custom EA Development</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-bg: #050d1a;
+            --navy-card: #0d1b30;
+            --navy-border: #0f2040;
+            --blue-main: #1a6fff;
+            --blue-light: #3d8bff;
+            --accent: #00c6ff;
+            --text-1: #e8edf5;
+            --text-2: #7a92b5;
+            --text-3: #3d5273;
+            --green: #00d68f;
+            --yellow: #ffb84d;
+            --font-head: 'Syne', sans-serif;
+            --font-body: 'DM Sans', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+
+            --nav-bg: rgba(5, 13, 26, 0.8);
+            --grid-c1: rgba(15, 32, 64, 0.5);
+            --btn-outline-hover: rgba(255, 255, 255, 0.05);
+            --input-bg: rgba(0, 0, 0, 0.2);
+            --input-bg-subtle: rgba(0, 0, 0, 0.1);
+            --receipt-bg: rgba(0, 0, 0, 0.3);
+            --logo-color: #ffffff;
+            --item-bg: rgba(255, 255, 255, 0.02);
+            --item-bg-hover: rgba(255, 255, 255, 0.05);
+            --badge-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        :root[data-theme="light"] {
+            --navy-bg: #f8fafc;
+            --navy-card: #ffffff;
+            --navy-border: #e2e8f0;
+            --blue-main: #1a6fff;
+            --blue-light: #2563eb;
+            --accent: #0284c7;
+            --text-1: #0f172a;
+            --text-2: #475569;
+            --text-3: #94a3b8;
+            --green: #059669;
+            --yellow: #d97706;
+
+            --nav-bg: rgba(248, 250, 252, 0.85);
+            --grid-c1: rgba(226, 232, 240, 0.8);
+            --btn-outline-hover: rgba(0, 0, 0, 0.05);
+            --input-bg: rgba(0, 0, 0, 0.04);
+            --input-bg-subtle: rgba(0, 0, 0, 0.02);
+            --receipt-bg: #f1f5f9;
+            --logo-color: #0f172a;
+            --item-bg: rgba(0, 0, 0, 0.02);
+            --item-bg-hover: rgba(0, 0, 0, 0.05);
+            --badge-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--navy-bg);
+            color: var(--text-1);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-head); line-height: 1.2; color: var(--text-1); }
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        /* Navbar */
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--navy-border);
+            padding: 16px 0;
+        }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-family: var(--font-head); font-size: 24px; font-weight: 800; color: var(--logo-color); }
+        .logo span { color: var(--blue-main); }
+        .nav-badge {
+            background: rgba(26, 111, 255, 0.1); color: var(--blue-light);
+            border: 1px solid rgba(26, 111, 255, 0.2);
+            padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600;
+        }
+
+        /* Hero */
+        .hero { position: relative; background: var(--navy-bg); overflow: hidden; padding: 100px 0 60px; text-align: left; }
+        .hero-bg-glow {
+            position: absolute; width: 800px; height: 800px; border-radius: 50%;
+            background: radial-gradient(circle, var(--blue-main) 0%, transparent 70%);
+            top: -400px; left: -200px; opacity: 0.15; filter: blur(80px); z-index: 0;
+            transition: all 0.5s ease;
+        }
+        :root[data-theme="light"] .hero-bg-glow { opacity: 0.08; top: -500px; }
+        .hero-grid-overlay {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(var(--grid-c1) 1px, transparent 1px), linear-gradient(90deg, var(--grid-c1) 1px, transparent 1px);
+            background-size: 60px 60px; z-index: 0; opacity: 0.3;
+            -webkit-mask-image: radial-gradient(ellipse at top left, black, transparent 70%);
+            mask-image: radial-gradient(ellipse at top left, black, transparent 70%);
+        }
+        .candle {
+            flex: 1; border: 1px solid var(--navy-border); border-radius: 2px; position: relative;
+            display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.2);
+            transition: height 0.3s ease;
+        }
+        .candle.up { border-color: var(--green); background: rgba(0, 214, 143, 0.1); }
+        .candle.down { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .candle .wick { width: 2px; height: 140%; background: var(--navy-border); position: absolute; z-index: -1; }
+        .candle.up .wick { background: var(--green); }
+        .candle.down .wick { background: #ef4444; }
+        @keyframes pulse-glow { 0% { opacity: 0.4; transform: scale(0.95); } 100% { opacity: 0.7; transform: scale(1.05); } }
+        
+        .eyebrow {
+            display: inline-flex; color: var(--accent); font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase; font-size: 13px; margin-bottom: 24px;
+            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56,189,248,0.2); padding: 8px 16px; border-radius: 20px; box-shadow: 0 0 20px rgba(56,189,248,0.2);
+        }
+        .hero h1 { font-size: 56px; margin-bottom: 24px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .hero p { font-size: 18px; color: var(--text-2); max-width: 600px; margin: 0 auto 40px; }
+        
+        .hero-btns { display: flex; gap: 16px; justify-content: center; margin-bottom: 60px; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 14px 28px; border-radius: 8px; font-weight: 600; font-family: var(--font-body);
+            cursor: pointer; transition: all 0.3s ease; border: none; font-size: 16px;
+        }
+        .btn-primary { background: var(--blue-main); color: #fff; box-shadow: 0 4px 15px rgba(26, 111, 255, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); background: var(--blue-light); box-shadow: 0 6px 20px rgba(26, 111, 255, 0.4); }
+        .btn-outline { background: transparent; color: var(--text-1); border: 1px solid var(--navy-border); }
+        .btn-outline:hover { border-color: var(--text-2); background: var(--btn-outline-hover); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .trust-bar {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 32px;
+            padding-top: 40px; border-top: 1px solid var(--navy-border); max-width: 800px; margin: 0 auto;
+        }
+        .trust-item { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 15px; font-weight: 500; }
+        .trust-item svg { color: var(--accent); width: 20px; height: 20px; }
+
+        /* Sections */
+        .section { padding: 100px 0; position: relative; }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-header h2 { font-size: 40px; margin-bottom: 16px; }
+        .section-header p { color: var(--text-2); font-size: 18px; }
+
+        /* How it Works */
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .step-card {
+            background: var(--navy-card); border: 1px solid var(--navy-border);
+            padding: 32px; border-radius: 12px; transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .step-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .step-num { font-family: var(--font-mono); font-size: 14px; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+        .step-card h3 { font-size: 20px; margin-bottom: 12px; }
+        .step-card p { color: var(--text-2); font-size: 15px; }
+
+        /* Calculator */
+        .calc-wrapper { display: grid; grid-template-columns: 1fr 380px; gap: 40px; align-items: start; }
+        .calc-box { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 12px; padding: 32px; }
+        .calc-group { margin-bottom: 32px; }
+        .calc-label { display: block; font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .platform-toggle { display: flex; background: var(--input-bg); border-radius: 8px; padding: 4px; gap: 4px; }
+        .platform-toggle label { flex: 1; }
+        .platform-toggle input { display: none; }
+        .toggle-btn { display: block; text-align: center; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 500; color: var(--text-2); transition: 0.2s; }
+        .platform-toggle input:checked + .toggle-btn { background: var(--blue-main); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .complexity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .complexity-label { display: block; cursor: pointer; }
+        .complexity-label input { display: none; }
+        .complexity-box { border: 1px solid var(--navy-border); border-radius: 8px; padding: 16px; height: 100%; transition: all 0.2s; }
+        .complexity-label input:checked + .complexity-box { border-color: var(--blue-main); background: rgba(26, 111, 255, 0.05); box-shadow: 0 0 0 1px var(--blue-main); }
+        .comp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-family: var(--font-head); font-size: 16px; font-weight: 700; }
+        .comp-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .c-sim { background: var(--green); }
+        .c-std { background: var(--blue-light); }
+        .c-adv { background: #b054ff; }
+        .comp-price { font-family: var(--font-mono); font-size: 14px; color: var(--text-2); margin-bottom: 12px; display: block; }
+        .comp-desc { font-size: 13px; color: var(--text-2); line-height: 1.4; }
+        .comp-ex { font-size: 13px; margin-top: 8px; font-style: italic; color: var(--text-3); }
+
+        select.styled-select { width: 100%; padding: 14px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--navy-border); color: var(--text-1); font-family: var(--font-body); font-size: 15px; appearance: none; outline: none; }
+        select.styled-select:focus { border-color: var(--blue-main); }
+
+        .addons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .addon-label { display: flex; align-items: center; background: var(--input-bg-subtle); border: 1px solid var(--navy-border); padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .addon-label:hover { border-color: var(--text-3); }
+        .addon-label input { display: none; }
+        .checkbox-custom { width: 20px; height: 20px; border: 2px solid var(--navy-border); border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: var(--input-bg); }
+        .checkbox-custom svg { width: 12px; height: 12px; color: white; opacity: 0; transition: 0.2s; }
+        .addon-label input:checked + .checkbox-custom { background: var(--blue-main); border-color: var(--blue-main); }
+        .addon-label input:checked + .checkbox-custom svg { opacity: 1; }
+        .addon-text { flex: 1; font-size: 14px; }
+        .addon-price { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+        .addon-label input:checked ~ .addon-text { color: var(--text-1); }
+
+        .delivery-toggle { display: flex; gap: 16px; }
+        .delivery-label { flex: 1; cursor: pointer; }
+        .delivery-label input { display: none; }
+        .delivery-box { border: 1px solid var(--navy-border); border-radius: 8px; padding: 16px; text-align: center; transition: 0.2s; }
+        .d-title { font-weight: 600; display: block; margin-bottom: 4px; }
+        .d-title.express { color: var(--yellow); }
+        .d-desc { font-size: 13px; color: var(--text-2); }
+        .delivery-label input:checked + .delivery-box { border-color: var(--blue-main); background: rgba(26, 111, 255, 0.05); }
+
+        .receipt-box { background: var(--receipt-bg); border: 1px solid var(--navy-border); border-radius: 12px; padding: 32px; position: sticky; top: 100px; }
+        .receipt-label { color: var(--text-2); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .receipt-total { font-family: var(--font-mono); font-size: 40px; font-weight: 500; color: var(--logo-color); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .receipt-tax { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
+        .receipt-divider { height: 1px; background: var(--navy-border); margin: 24px 0; }
+        .receipt-line { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: var(--text-2); }
+        .receipt-line.sub { color: var(--text-1); }
+        .receipt-btn { width: 100%; margin-top: 24px; padding: 16px; }
+        .receipt-note { font-size: 12px; color: var(--text-3); text-align: center; margin-top: 16px; line-height: 1.4; }
+
+        .included-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .included-item { background: var(--item-bg); border: 1px solid var(--navy-border); border-radius: 8px; padding: 20px; display: flex; align-items: start; gap: 12px; }
+        .included-item svg { color: var(--green); flex-shrink: 0; width: 20px; height: 20px; margin-top: 2px; }
+        .included-item p { font-weight: 500; font-size: 15px; }
+
+        .coming-soon-section { background: var(--input-bg); padding: 80px 0; border-top: 1px solid var(--navy-border); border-bottom: 1px solid var(--navy-border); position: relative; }
+        .cs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+        .cs-card { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 12px; padding: 24px; position: relative; overflow: hidden; }
+        .cs-card:not(.is-active) .cs-content { filter: blur(4px); opacity: 0.5; user-select: none; pointer-events: none; }
+        .cs-badge-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .cs-card.is-active .cs-badge-overlay { display: none; }
+        .lock-icon { color: var(--text-2); margin-bottom: 12px; width: 32px; height: 32px; }
+        .cs-badge { background: var(--badge-bg); border: 1px solid var(--navy-border); color: var(--text-1); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .cs-title { font-family: var(--font-head); font-size: 18px; margin-bottom: 8px; }
+        .cs-meta { display: flex; gap: 12px; font-size: 13px; color: var(--text-2); font-family: var(--font-mono); margin-bottom: 16px; }
+        .cs-platform, .cs-pair { background: var(--item-bg-hover); padding: 4px 8px; border-radius: 4px; }
+        .waitlist-box { max-width: 500px; margin: 0 auto; text-align: center; }
+        .waitlist-form { display: flex; gap: 8px; margin-top: 24px; }
+        .waitlist-form input { flex: 1; padding: 14px 16px; border-radius: 8px; background: var(--receipt-bg); border: 1px solid var(--navy-border); color: var(--text-1); outline: none; font-family: var(--font-body); }
+        .waitlist-form input:focus { border-color: var(--blue-main); }
+
+        .tnc-box { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 12px; max-height: 400px; overflow-y: scroll; font-size: 13px; color: var(--text-2); margin-bottom: 24px; text-align: left; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .tnc-box::-webkit-scrollbar { width: 4px; }
+        .tnc-box::-webkit-scrollbar-track { background: transparent; }
+        .tnc-box::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 10px; }
+        .tnc-header { padding: 24px 24px 16px; border-bottom: 1px solid var(--navy-border); background: var(--input-bg); position: sticky; top: 0; z-index: 5; }
+        .tnc-header h4 { font-size: 15px; font-weight: 700; color: var(--text-1); letter-spacing: 0.5px; margin: 0 0 4px; font-family: var(--font-heading); }
+        .tnc-header .tnc-date { font-size: 12px; color: var(--text-3); }
+        .tnc-content { padding: 8px 24px 24px; }
+        .tnc-item { margin-top: 24px; }
+        .tnc-item h5 { color: var(--text-1); margin: 0 0 10px; font-size: 14px; font-weight: 600; font-family: var(--font-heading); }
+        .tnc-item p, .tnc-item ul { font-size: 13px; line-height: 1.6; margin: 0; color: var(--text-2); }
+        .tnc-item ul { padding-left: 20px; }
+        .tnc-item ul li { margin-bottom: 6px; }
+        .tnc-footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--navy-border); font-style: italic; font-size: 13px; color: var(--text-2); }
+        .tnc-agree { display: flex; align-items: start; gap: 16px; margin-bottom: 24px; text-align: left; background: var(--navy-card); padding: 20px; border-radius: 12px; border: 1px solid var(--navy-border); cursor: pointer; transition: border-color 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .tnc-agree:hover { border-color: rgba(56, 189, 248, 0.5); }
+        .tnc-agree p { font-size: 14px; line-height: 1.5; color: var(--text-1); margin: 0;}
+        .agree-checkbox { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--blue-main); cursor: pointer; }
+        .btn-order-final { font-size: 16px; padding: 18px 48px; width: 100%; border-radius: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;}
+
+        .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--navy-border); color: var(--text-1); border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .theme-toggle-btn:hover { background: var(--input-bg-subtle); color: var(--blue-main); }
+
+        /* Payment Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-content { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 12px; width: 100%; max-width: 480px; margin: 20px; padding: 32px; position: relative; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--text-2); font-size: 28px; cursor: pointer; line-height: 1; }
+        .modal-close:hover { color: var(--text-1); }
+        .modal-header { margin-bottom: 24px; text-align: left; }
+        .modal-header h3 { font-size: 24px; margin-bottom: 8px; color: var(--text-1); font-family: var(--font-head); }
+        .modal-header p { color: var(--text-2); font-size: 14px; margin: 0; }
+        .modal-amount { background: var(--input-bg); border-radius: 8px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-amount .label { color: var(--text-2); font-size: 14px; }
+        .modal-amount .value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; color: var(--blue-main); }
+        .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .payment-method { padding: 12px; border: 1px solid var(--navy-border); border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; color: var(--text-2); background: var(--input-bg-subtle); }
+        .payment-method:hover { border-color: var(--text-3); color: var(--text-1); }
+        .payment-method.active { background: rgba(26, 111, 255, 0.05); border-color: var(--blue-main); color: var(--blue-main); box-shadow: inset 0 0 0 1px var(--blue-main); }
+        .details-wrapper { text-align: center; display: none; }
+        .details-wrapper.active { display: block; }
+        .qr-placeholder { background: #fff; padding: 16px; border-radius: 8px; display: inline-block; margin-bottom: 16px; border: 4px solid var(--input-bg); }
+        .qr-placeholder img { width: 160px; height: 160px; display: block; }
+        .upi-id-box { display: inline-flex; align-items: center; gap: 8px; background: var(--input-bg); padding: 8px 16px; border-radius: 20px; font-family: var(--font-mono); font-size: 14px; margin-top: 12px; border: 1px solid var(--navy-border); color: var(--text-1); }
+        .bank-info { text-align: left; background: var(--input-bg-subtle); padding: 16px; border-radius: 8px; font-size: 14px; border: 1px solid var(--navy-border); }
+        .bank-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--navy-border); padding-bottom: 12px; }
+        .bank-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .bank-row span { color: var(--text-2); }
+        .bank-row strong { font-family: var(--font-mono); color: var(--text-1); display: flex; align-items: center; gap: 8px; }
+        .copy-btn { background: var(--navy-border); color: var(--text-1); border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .copy-btn:hover { background: var(--blue-main); color: #fff; }
+
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .styled-input { width: 100%; padding: 14px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--navy-border); color: var(--text-1); font-family: var(--font-body); font-size: 15px; outline: none; transition: 0.2s; }
+        .styled-input:focus { border-color: var(--blue-main); }
+        textarea.styled-input { resize: vertical; min-height: 100px; }
+
+        .footer { border-top: 1px solid var(--navy-border); padding: 40px 0; margin-top: 80px; text-align: center; color: var(--text-2); }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin: 20px 0; font-size: 14px; }
+        .footer-links a:hover { color: var(--text-1); }
+        .footer-disclaimer { font-size: 12px; color: var(--text-3); max-width: 600px; margin: 0 auto; }
+
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #000; padding: 12px 24px; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 20px rgba(0, 214, 143, 0.4); transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .number-flip { animation: flip 0.3s ease-out; }
+        @keyframes flip { 0% { transform: translateY(-5px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+
+        @media (max-width: 992px) { .calc-wrapper { grid-template-columns: 1fr; } .receipt-box { position: static; } }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 36px; } .hero p { font-size: 16px; }
+            .hero-btns { flex-direction: column; gap: 12px; }
+            .steps-grid, .complexity-grid, .addons-grid, .included-grid, .cs-grid { grid-template-columns: 1fr; }
+            .section { padding: 60px 0; }
+            .trust-bar { gap: 16px; flex-direction: column; align-items: center; }
+            .delivery-toggle { flex-direction: column; } .calc-box { padding: 20px; }
+            .founder-card { flex-direction: column; }
+            .founder-photo-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 30px; }
+        }
+        @media (min-width: 768px) {
+            .founder-card { flex-direction: row; }
+            .founder-photo-col { flex: 0 0 40%; border-right: 1px solid rgba(255,255,255,0.05); border-bottom: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <div class="logo" style="display: flex; align-items: center; gap: 8px;">
+                <img src="/logo.png" alt="AlgoEdge Logo" style="height: 28px; width: auto; border-radius: 5px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue-main); display: none;">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                <div>Algo<span>Edge</span></div>
+            </div>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <button id="auth-btn" class="btn btn-outline" style="padding: 6px 16px; font-size: 14px; border-radius: 6px;">Register</button>
+                <div class="nav-badge" id="user-badge" style="display: none; background: transparent; border: 1px solid var(--green); color: var(--green); cursor: pointer;" title="Sign Out">Sign Out</div>
+                <div class="nav-badge">Custom Build Service</div>
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+                    <svg id="moon-icon" style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <svg id="sun-icon" style="display:none; width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero" style="min-height: 90vh; display: flex; align-items: center; position: relative; padding: 120px 20px 60px; overflow: hidden;">
+        <!-- Futuristic background gradient that adapts to light/dark -->
+        <div class="hero-bg-glow"></div>
+        <div class="hero-grid-overlay"></div>
+        
+        <div class="container" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 60px; position: relative; z-index: 10;">
+            <!-- Left Side / Text -->
+            <div style="flex: 1 1 500px; max-width: 650px;">
+                <span class="eyebrow">Ultra Professional Fintech</span>
+                <h1 style="font-size: clamp(40px, 5vw, 64px); font-weight: 800; line-height: 1.1; margin-bottom: 24px; color: var(--text-1); letter-spacing: -1px;">Automate Your <br><span style="background: linear-gradient(135deg, var(--blue-main), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Trading Edge</span></h1>
+                <p style="font-size: clamp(17px, 2vw, 20px); color: var(--text-2); margin-bottom: 40px; line-height: 1.6; max-width: 540px;">Professional MT5 Expert Advisors, Risk Management Tools & Algo Trading Solutions.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                    <button class="btn btn-primary" id="btn-calc-scroll" style="padding: 16px 36px; font-size: 16px; border-radius: 8px; font-weight: 600;">Get Started</button>
+                    <button class="btn btn-outline" id="btn-whatsapp-scroll" style="backdrop-filter: blur(10px); padding: 16px 36px; font-size: 16px; border-radius: 8px; font-weight: 600; border-color: var(--navy-border);">Discuss Your Strategy</button>
+                </div>
+                
+                <div class="trust-bar" style="justify-content: flex-start; margin-top: 48px; border-top: none; padding-top: 0; gap: 24px;">
+                    <div class="trust-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        100% Custom Code
+                    </div>
+                    <div class="trust-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        Instituional Grade
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side / Illustration -->
+            <div style="flex: 1 1 500px; position: relative;">
+                 <!-- Glassmorphism dashboard card -->
+                 <div class="dashboard-illus" style="background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 20px; padding: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); position: relative; z-index: 2; overflow: hidden; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                     <!-- Top bar -->
+                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--navy-border); padding-bottom: 16px; margin-bottom: 20px;">
+                         <div style="display: flex; gap: 8px;">
+                             <div style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444;"></div>
+                             <div style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b;"></div>
+                             <div style="width: 12px; height: 12px; border-radius: 50%; background: #10b981;"></div>
+                         </div>
+                         <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-2);">XAUUSD - M15 (Active)</div>
+                         <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue-main)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                     </div>
+                     <!-- Main Graph Area -->
+                     <div style="height: 240px; position: relative; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px dashed var(--navy-border); padding-bottom: 10px;">
+                         <!-- Fake Candlesticks -->
+                         <div class="candle up" style="height: 40%;"><div class="wick"></div></div>
+                         <div class="candle down" style="height: 60%;"><div class="wick"></div></div>
+                         <div class="candle up" style="height: 50%;"><div class="wick"></div></div>
+                         <div class="candle up" style="height: 70%;"><div class="wick"></div></div>
+                         <div class="candle down" style="height: 55%;"><div class="wick"></div></div>
+                         <div class="candle up" style="height: 85%;"><div class="wick"></div></div>
+                         <div class="candle up" style="height: 95%;"><div class="wick"></div></div>
+                         <div class="candle down" style="height: 80%;"><div class="wick"></div></div>
+                         <div class="candle up" style="height: 100%; border-color: var(--blue-main); box-shadow: 0 0 15px rgba(26,111,255,0.4);"><div class="wick" style="background: var(--blue-main);"></div></div>
+                         <!-- Moving average line -->
+                         <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" preserveAspectRatio="none" viewBox="0 0 100 100">
+                             <path d="M0,80 Q20,60 40,70 T80,30 T100,5" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+                             <path d="M0,80 Q20,60 40,70 T80,30 T100,5 L100,100 L0,100 Z" fill="url(#gradient)" stroke="none" opacity="0.2"></path>
+                             <defs>
+                                 <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                                     <stop offset="0%" stop-color="var(--accent)" stop-opacity="1" />
+                                     <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+                                 </linearGradient>
+                             </defs>
+                         </svg>
+                     </div>
+                     <!-- Bottom stats -->
+                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                         <div style="background: var(--input-bg); padding: 12px; border-radius: 8px;">
+                             <div style="font-size: 12px; color: var(--text-2); margin-bottom: 4px;">Win Rate</div>
+                             <div style="font-size: 20px; font-weight: 700; color: var(--green);">84.6%</div>
+                         </div>
+                         <div style="background: var(--input-bg); padding: 12px; border-radius: 8px;">
+                             <div style="font-size: 12px; color: var(--text-2); margin-bottom: 4px;">Profit Factor</div>
+                             <div style="font-size: 20px; font-weight: 700; color: var(--blue-light);">2.4x</div>
+                         </div>
+                         <div style="background: var(--input-bg); padding: 12px; border-radius: 8px;">
+                             <div style="font-size: 12px; color: var(--text-2); margin-bottom: 4px;">Drawdown</div>
+                             <div style="font-size: 20px; font-weight: 700; color: var(--text-1);">4.2%</div>
+                         </div>
+                     </div>
+                 </div>
+                 
+                 <!-- Decorative Elements Behind Dashboard -->
+                 <div style="position: absolute; top: -30px; right: -30px; width: 150px; height: 150px; border-radius: 20px; background: linear-gradient(135deg, var(--blue-main), var(--accent)); filter: blur(60px); z-index: 1; opacity: 0.6; animation: pulse-glow 6s infinite alternate;"></div>
+                 <div style="position: absolute; bottom: -40px; left: -20px; width: 200px; height: 200px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, var(--blue-main)); filter: blur(80px); z-index: 1; opacity: 0.5;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Beautiful Premium Founder Section -->
+    <div class="section container" style="position: relative; overflow: hidden; margin-top: 20px; padding: 60px 20px;">
+        <!-- Glowing background effects -->
+        <div style="position: absolute; top: -50px; right: -50px; width: 400px; height: 400px; background: rgba(0, 102, 255, 0.05); filter: blur(100px); border-radius: 50%; z-index: -1;"></div>
+        <div style="position: absolute; bottom: -50px; left: -50px; width: 300px; height: 300px; background: rgba(56, 189, 248, 0.05); filter: blur(80px); border-radius: 50%; z-index: -1;"></div>
+        
+        <!-- Faint grid background -->
+        <div style="position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; z-index: -1; pointer-events: none;"></div>
+
+        <div class="founder-card" style="margin: 0 auto; max-width: 1000px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; display: flex; align-items: stretch; position: relative;">
+            
+            <!-- Left Side: Professional Photo -->
+            <div class="founder-photo-col" style="position: relative; display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.8) 100%);">
+                <!-- Circular/Rounded frame with soft glow -->
+                <div style="position: relative; border-radius: 50%; padding: 6px; background: linear-gradient(135deg, #0ea5e9, #2563eb); box-shadow: 0 0 40px rgba(14, 165, 233, 0.3);">
+                    <img src="/founder.jpg" alt="Arkan Ansari" style="width: 220px; height: 220px; object-fit: cover; border-radius: 50%; border: 4px solid #0f172a; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);" onerror="this.src='https://ui-avatars.com/api/?name=Arkan+Ansari&background=0ea5e9&color=fff&size=200';">
+                </div>
+            </div>
+
+            <!-- Right Side: Bio & Highlights -->
+            <div style="flex: 1; padding: 48px; display: flex; flex-direction: column; justify-content: center;">
+                <h4 style="color: #38bdf8; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Founder of Algo Edge</h4>
+                <h2 style="font-size: 32px; font-weight: 800; color: #f8fafc; margin-bottom: 8px;">Arkan Ansari</h2>
+                
+                <p style="font-size: 16px; line-height: 1.7; color: #cbd5e1; margin-bottom: 24px;">
+                    "Our mission is to help traders automate their strategies, reduce emotional trading, and build a more disciplined approach to the financial markets through technology and data-driven systems."
+                </p>
+
+                <!-- Experience Highlights -->
+                <div style="display: flex; gap: 32px; margin-bottom: 32px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 24px;">
+                    <div>
+                        <div style="font-size: 24px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 4px;">5+ <span style="color: #38bdf8; font-size: 16px;">Yrs</span></div>
+                        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Algorithmic Trading</div>
+                    </div>
+                     <div>
+                        <div style="font-size: 24px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 4px;">150+</div>
+                        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Bots Developed</div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div style="display: flex; gap: 16px;">
+                    <a href="https://wa.me/8827215057?text=Hello%2C%20I%E2%80%99m%20interested%20in%20your%20Algo%20Trading%20%26%20EA%20services.%20Please%20share%20more%20details." target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #cbd5e1; transition: all 0.2s;" onmouseover="this.style.background='rgba(37,211,102,0.2)'; this.style.color='#25D366';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#cbd5e1';">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/arkan_s_money_mindset/" target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #cbd5e1; transition: all 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.2)'; this.style.color='#38bdf8';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#cbd5e1';">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/arkan-ansari-599a70350/?locale=en" target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #cbd5e1; transition: all 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.2)'; this.style.color='#38bdf8';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#cbd5e1';">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19,3H5C3.895,3,3,3.895,3,5v14c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.895,20.105,3,19,3z M9,17H6.5v-7H9V17z M7.75,8.839C6.918,8.839,6.25,8.172,6.25,7.339c0-0.833,0.668-1.5,1.5-1.5c0.833,0,1.5,0.667,1.5,1.5 C9.25,8.172,8.583,8.839,7.75,8.839z M18.5,17h-2.5v-3.791c0-0.892-0.018-2.039-1.242-2.039c-1.243,0-1.433,0.971-1.433,1.972V17 h-2.5v-7h2.4v0.957h0.034c0.334-0.633,1.15-1.302,2.371-1.302c2.537,0,3.003,1.671,3.003,3.844V17z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section container">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Turn your trading rules into an automated machine in 3 simple steps.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">STEP 01</div>
+                <h3>Share Your Strategy</h3>
+                <p>Fill the order form with your strategy logic, indicators, entry/exit rules, and risk settings.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 02</div>
+                <h3>We Build & Test</h3>
+                <p>Our team codes your EA in MQL4/MQL5 or Python and runs backtests before delivery.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 03</div>
+                <h3>You Trade Live</h3>
+                <p>Receive your EA with a setup guide. Deploy on MT4/MT5 or your VPS — start trading.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="calculator" class="section container">
+        <div class="section-header">
+            <h2>Estimate Your Build Cost</h2>
+            <p>Get an instant price estimate — final quote confirmed after brief</p>
+        </div>
+        <div class="calc-wrapper">
+            <div class="calc-box">
+                <!-- A) Platform -->
+                <div class="calc-group">
+                    <span class="calc-label">A) Platform</span>
+                    <div class="platform-toggle">
+                        <label>
+                            <input type="radio" name="platform" value="1.0" data-name="MT4" checked>
+                            <span class="toggle-btn">MT4</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="platform" value="1.1" data-name="MT5">
+                            <span class="toggle-btn">MT5</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="platform" value="1.25" data-name="Python">
+                            <span class="toggle-btn">Python / Binance</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- B) Complexity -->
+                <div class="calc-group">
+                    <span class="calc-label">B) Strategy Complexity</span>
+                    <div class="complexity-grid">
+                        <label class="complexity-label">
+                            <input type="radio" name="complexity" value="4999" checked>
+                            <div class="complexity-box">
+                                <div class="comp-header"><span class="comp-dot c-sim"></span> Simple EA</div>
+                                <span class="comp-price">₹4,999 base</span>
+                                <p class="comp-desc">1 indicator, basic entry/exit, fixed SL/TP</p>
+                                <p class="comp-ex">Examples: MA crossover, RSI signal, breakout</p>
+                            </div>
+                        </label>
+                        <label class="complexity-label">
+                            <input type="radio" name="complexity" value="9999">
+                            <div class="complexity-box">
+                                <div class="comp-header"><span class="comp-dot c-std"></span> Standard EA</div>
+                                <span class="comp-price">₹9,999 base</span>
+                                <p class="comp-desc">2–3 indicators, trailing SL, multiple conditions</p>
+                                <p class="comp-ex">Examples: EMA + RSI + ATR, session filter</p>
+                            </div>
+                        </label>
+                        <label class="complexity-label">
+                            <input type="radio" name="complexity" value="24999">
+                            <div class="complexity-box">
+                                <div class="comp-header"><span class="comp-dot c-adv"></span> Advanced EA</div>
+                                <span class="comp-price">₹24,999 base</span>
+                                <p class="comp-desc">Complex logic, multi-condition, risk management system</p>
+                                <p class="comp-ex">Examples: London breakout + news filter + drawdown control</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- C) Pairs -->
+                <div class="calc-group">
+                    <span class="calc-label">C) Number of Trading Pairs</span>
+                    <select id="pairs" class="styled-select">
+                        <option value="1.0">1 Pair (×1.0)</option>
+                        <option value="1.35">2–3 Pairs (×1.35)</option>
+                        <option value="1.7">4+ Pairs (×1.7)</option>
+                    </select>
+                </div>
+
+                <!-- D) Add-ons -->
+                <div class="calc-group">
+                    <span class="calc-label">D) Add-ons</span>
+                    <div class="addons-grid">
+                        <label class="addon-label">
+                            <input type="checkbox" name="addon" value="2000">
+                            <div class="checkbox-custom"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+                            <span class="addon-text">Custom Dashboard Panel</span>
+                            <span class="addon-price">+₹2,000</span>
+                        </label>
+                        <label class="addon-label">
+                            <input type="checkbox" name="addon" value="2500">
+                            <div class="checkbox-custom"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+                            <span class="addon-text">News Filter (Avoid news)</span>
+                            <span class="addon-price">+₹2,500</span>
+                        </label>
+                        <label class="addon-label">
+                            <input type="checkbox" name="addon" value="1500">
+                            <div class="checkbox-custom"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+                            <span class="addon-text">Strategy Backtest Report</span>
+                            <span class="addon-price">+₹1,500</span>
+                        </label>
+                        <label class="addon-label">
+                            <input type="checkbox" name="addon" value="1500">
+                            <div class="checkbox-custom"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+                            <span class="addon-text">Multi-Timeframe Analysis</span>
+                            <span class="addon-price">+₹1,500</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- E) Delivery -->
+                <div class="calc-group">
+                    <span class="calc-label">E) Delivery Speed</span>
+                    <div class="delivery-toggle">
+                        <label class="delivery-label">
+                            <input type="radio" name="delivery" value="standard" checked>
+                            <div class="delivery-box">
+                                <span class="d-title">Standard</span>
+                                <span class="d-desc">7–10 days</span>
+                            </div>
+                        </label>
+                        <label class="delivery-label">
+                            <input type="radio" name="delivery" value="express">
+                            <div class="delivery-box">
+                                <span class="d-title express">Express (+25%)</span>
+                                <span class="d-desc">3–5 days</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipt Box -->
+            <div class="receipt-box">
+                <div class="receipt-label">Estimated Price</div>
+                <div class="receipt-total" id="res-total" data-val="4999">₹4,999</div>
+                <div class="receipt-tax">+ 18% GST applicable</div>
+                
+                <div class="receipt-divider"></div>
+                
+                <div class="receipt-line"><span>Base:</span> <span class="sub" id="res-base">₹4,999</span></div>
+                <div class="receipt-line"><span>Platform:</span> <span class="sub" id="res-platform">MT4 (×1.0)</span></div>
+                <div class="receipt-line"><span>Pairs:</span> <span class="sub" id="res-pairs">1 Pair (×1.0)</span></div>
+                <div class="receipt-line"><span>Add-ons:</span> <span class="sub" id="res-addons">-</span></div>
+                <div class="receipt-line"><span>Delivery:</span> <span class="sub" id="res-delivery">Standard</span></div>
+                
+                <div class="receipt-divider"></div>
+                
+                <button class="btn btn-primary receipt-btn" id="btn-order-calc">Place This Order →</button>
+                <p class="receipt-note">* Final price confirmed after requirement discussion</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- What's Included -->
+    <div class="section container">
+        <div class="section-header">
+            <h2>What's Included</h2>
+        </div>
+        <div class="included-grid">
+            <div class="included-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><p>Full Source Code (.ex4/.ex5/.py)</p></div>
+            <div class="included-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><p>Strategy Brief Review Call</p></div>
+            <div class="included-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><p>Backtest Screenshots</p></div>
+            <div class="included-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><p>Setup & Installation Guide</p></div>
+            <div class="included-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><p>1 Free Revision (within 7 days)</p></div>
+            <div class="included-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><p>NDA & IP Agreement</p></div>
+        </div>
+    </div>
+
+    <!-- Coming Soon -->
+    <div class="coming-soon-section">
+        <div class="container text-center" style="text-align: center;">
+            <div class="section-header" style="margin-bottom: 40px;">
+                <h2>Ready-Made EAs — Coming Soon</h2>
+                <p>We're packaging our best-performing EAs for instant purchase. Join the waitlist to get early access + launch discount.</p>
+            </div>
+            
+            <div class="cs-grid" style="text-align: left;">
+                <div class="cs-card">
+                    <div class="cs-badge-overlay">
+                        <svg class="lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <span class="cs-badge">Coming Soon</span>
+                    </div>
+                    <div class="cs-content">
+                        <h3 class="cs-title">London Breakout Pro</h3>
+                        <div class="cs-meta">
+                            <span class="cs-platform">MT4 / MT5</span>
+                            <span class="cs-pair">XAUUSD</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-badge-overlay">
+                        <svg class="lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <span class="cs-badge">Coming Soon</span>
+                    </div>
+                    <div class="cs-content">
+                        <h3 class="cs-title">EMA Momentum Bot</h3>
+                        <div class="cs-meta">
+                            <span class="cs-platform">Python</span>
+                            <span class="cs-pair">BTC/ETH</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-badge-overlay">
+                        <svg class="lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <span class="cs-badge">Coming Soon</span>
+                    </div>
+                    <div class="cs-content">
+                        <h3 class="cs-title">Prop Firm Safe EA</h3>
+                        <div class="cs-meta">
+                            <span class="cs-platform">MT5</span>
+                            <span class="cs-pair">EURUSD/NAS100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="waitlist-box">
+                <form id="waitlist-form" class="waitlist-form">
+                    <input type="email" placeholder="Enter your email" required>
+                    <button type="submit" class="btn btn-outline" style="border-color: var(--blue-main); color: var(--blue-light);">Join Waitlist</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- T&C / Order Agreement -->
+    <div id="order-agreement" class="section container" style="max-width: 800px;">
+        <div class="section-header" style="margin-bottom: 40px; text-align: center;">
+            <h2>Terms & Conditions</h2>
+        </div>
+        
+        <div class="tnc-box">
+            <div class="tnc-header">
+                <h4>ALGOEDGE CUSTOM EA DEVELOPMENT</h4>
+                <div class="tnc-date">Last Updated: May 7, 2026</div>
+            </div>
+            
+            <div class="tnc-content">
+                <div class="tnc-item">
+                    <h5>1. SERVICE NATURE</h5>
+                    <p>AlgoEdge provides custom algorithmic trading software development services. All Expert Advisors (EAs), bots, and automation tools are developed based on client-provided strategy specifications. AlgoEdge does not provide financial advice, investment recommendations, or guarantee any trading profitability, funding pass, or financial returns.</p>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>2. PAYMENT TERMS</h5>
+                    <ul>
+                        <li>50% advance payment is required before development begins.</li>
+                        <li>Remaining 50% payment must be completed before final delivery and source code handover.</li>
+                        <li>All prices are in INR. GST (18%) applicable as per Indian tax laws.</li>
+                        <li>Payments accepted via Razorpay, UPI, or Bank Transfer only.</li>
+                        <li>Any payment gateway charges, international transfer fees, or currency conversion charges shall be borne by the client.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>3. DELIVERY POLICY</h5>
+                    <ul>
+                        <li>Standard delivery timeline: 7–10 business days after payment confirmation and complete strategy submission.</li>
+                        <li>Express delivery timeline: 3–5 business days (subject to availability).</li>
+                        <li>Delivery timelines begin only after all required strategy details, files, and confirmations are received from the client.</li>
+                        <li>Delays caused due to incomplete information, delayed responses, or strategy modifications by the client shall not be the responsibility of AlgoEdge.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>4. REVISIONS POLICY</h5>
+                    <ul>
+                        <li>One (1) free revision is included within 7 days after delivery.</li>
+                        <li>Revisions only cover bug fixes or minor adjustments based on the original agreed strategy logic.</li>
+                        <li>Additional features, new strategy conditions, logic changes, UI modifications, or extra functionalities requested after development will be charged separately.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>5. INTELLECTUAL PROPERTY & LICENSE</h5>
+                    <ul>
+                        <li>Upon full payment, the client receives usage rights/license for the final custom EA developed specifically for their strategy.</li>
+                        <li>AlgoEdge reserves the right to reuse general frameworks, modules, libraries, structures, risk-management systems, and non-client-specific development components for future projects or resale purposes.</li>
+                        <li>Unauthorized redistribution, resale, reverse engineering, copying, leaking, or sharing of proprietary protected components without written permission is prohibited.</li>
+                        <li>Both parties agree to maintain confidentiality of strategy logic and private business information.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>6. REFUND POLICY</h5>
+                    <ul>
+                        <li>Advance payments are strictly non-refundable once development work has started.</li>
+                        <li>If AlgoEdge fails to deliver the agreed project within the committed timeline without valid reason, the advance payment may be refunded.</li>
+                        <li>No refunds will be provided after final delivery, source code handover, or client approval.</li>
+                        <li>Digital products and custom software services are non-returnable in nature.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>7. SUPPORT POLICY</h5>
+                    <ul>
+                        <li>Free technical support is included for 7 days after final delivery.</li>
+                        <li>Extended support, updates, optimization, VPS setup, maintenance, or additional assistance may require separate charges.</li>
+                        <li>AlgoEdge is not responsible for issues caused by broker conditions, MetaTrader platform updates, VPS/server downtime, internet issues, slippage, spreads, execution delays, or third-party software/plugins.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>8. RISK DISCLAIMER</h5>
+                    <p>Trading forex, crypto, indices, commodities, or any financial instruments involves substantial risk of financial loss. Past performance, backtesting results, or historical data do not guarantee future results. AlgoEdge is strictly a software development service provider and not a SEBI-registered financial advisor or investment company. Clients use all software, bots, and tools entirely at their own risk.</p>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>9. NO PERFORMANCE GUARANTEE</h5>
+                    <p>AlgoEdge does not guarantee any fixed profits, win rate, consistency, account growth, prop firm challenge pass, or trading success. Market conditions continuously change and automated systems may perform differently under live market conditions.</p>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>10. SOURCE CODE & DELIVERY SECURITY</h5>
+                    <ul>
+                        <li>Final source code, setup files, licenses, or deployment access will only be delivered after complete payment clearance.</li>
+                        <li>Trial/demo versions may contain limitations or protections.</li>
+                        <li>AlgoEdge reserves the right to protect proprietary systems and internal frameworks.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>11. CLIENT RESPONSIBILITY</h5>
+                    <ul>
+                        <li>Clients are fully responsible for testing all EAs and tools on demo accounts before using them on live accounts.</li>
+                        <li>Clients are responsible for risk management, lot sizing, broker selection, and account management decisions.</li>
+                        <li>AlgoEdge shall not be liable for any trading losses, funded account failures, missed trades, or financial damages.</li>
+                    </ul>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>12. CHARGEBACK & PAYMENT DISPUTES</h5>
+                    <p>Since all services provided are custom digital development services, clients agree not to initiate fraudulent chargebacks or payment disputes after development work has started or delivery has been completed. Legal action may be taken in case of fraudulent disputes.</p>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>13. COMMUNICATION & AGREEMENT</h5>
+                    <p>Any requirements, confirmations, approvals, or discussions conducted through WhatsApp, Email, Telegram, Google Forms, or other written communication channels shall be considered part of the official agreement.</p>
+                </div>
+                
+                <div class="tnc-item">
+                    <h5>14. DISPUTE RESOLUTION</h5>
+                    <p>Any disputes arising from these services shall be governed under Indian law and subject to the jurisdiction of courts located in Chhattisgarh, India.</p>
+                </div>
+                
+                <div class="tnc-footer">
+                    <p>By placing an order, making payment, or using AlgoEdge services, the client confirms that they have read, understood, and agreed to all Terms & Conditions stated above.</p>
+                </div>
+            </div>
+        </div>
+        
+        <label class="tnc-agree">
+            <input type="checkbox" id="agree-tnc" class="agree-checkbox">
+            <p>I have read and agree to the Terms & Conditions and Risk Disclaimer above. I understand trading involves financial risk and AlgoEdge is solely a software development service.</p>
+        </label>
+        
+        <button id="btn-order-final" class="btn btn-primary btn-order-final" disabled>Accept & Continue</button>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="modal-close" id="close-auth-modal">&times;</button>
+            <div class="modal-header">
+                <h3 id="auth-title">Register</h3>
+                <p id="auth-subtitle">Verify your phone to continue</p>
+            </div>
+            <form id="auth-phone-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="auth-name" required placeholder="John Doe" class="styled-input">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="auth-phone" required placeholder="9876543210" class="styled-input" style="width: 100%;" pattern="[0-9]{10,15}" title="Please enter a valid phone number (10 to 15 digits)">
+                </div>
+                <p id="auth-phone-error" style="color: var(--yellow); font-size: 13px; margin-bottom: 16px; display: none;"></p>
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="auth-send-btn">Confirm</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Form Modal -->
+    <div id="order-form-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" id="close-order-modal">&times;</button>
+            <div class="modal-header">
+                <h3>Strategy Details</h3>
+                <p>Provide your basic requirements to proceed.</p>
+            </div>
+            <form id="order-details-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="order-name" required placeholder="John Doe" class="styled-input">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="order-email" required placeholder="john@example.com" class="styled-input">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp Number</label>
+                    <input type="tel" id="order-whatsapp" required placeholder="+91 9876543210" class="styled-input">
+                </div>
+                <div class="form-group">
+                    <label>Trading Platform</label>
+                    <select id="order-platform" required class="styled-input" style="background-color: var(--navy-bg); color: var(--text-1);">
+                        <option value="MT5">MetaTrader 5 (MT5)</option>
+                        <option value="MT4">MetaTrader 4 (MT4)</option>
+                        <option value="Python">Python Engine</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Strategy Summary</label>
+                    <textarea id="order-strategy" required rows="4" placeholder="Briefly describe your entry/exit rules and indicators..." class="styled-input"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">Submit Order →</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div style="font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--logo-color); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue-main);">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                <div>Algo<span style="color: var(--blue-main);">Edge</span></div>
+            </div>
+            <p>© 2026 — Custom Algo Development</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms</a>
+                <a href="#">Refund Policy</a>
+                <a href="#">Contact</a>
+                <a href="/admin.html">Admin Portal</a>
+            </div>
+            <p class="footer-disclaimer">AlgoEdge is a software development service. We do not provide financial advice. Trading involves risk.</p>
+        </div>
+    </footer>
+
+
+
+    <div id="toast" class="toast">You're on the list! We'll notify you.</div>
+
+    <script>
+        const q = (sel) => document.querySelector(sel);
+        const qa = (sel) => document.querySelectorAll(sel);
+
+        const els = {
+            platform: qa('input[name="platform"]'),
+            complexity: qa('input[name="complexity"]'),
+            pairs: q('#pairs'),
+            addons: qa('input[name="addon"]'),
+            delivery: qa('input[name="delivery"]'),
+            
+            resBase: q('#res-base'),
+            resPlatform: q('#res-platform'),
+            resPairs: q('#res-pairs'),
+            resAddons: q('#res-addons'),
+            resDelivery: q('#res-delivery'),
+            resTotal: q('#res-total'),
+            
+            orderCalcBtn: q('#btn-order-calc'),
+            tncCheckbox: q('#agree-tnc'),
+            orderFinalBtn: q('#btn-order-final')
+        };
+
+        function formatPrice(num) {
+            return '₹' + num.toLocaleString('en-IN');
+        }
+
+        function calculatePrice() {
+            let basePrice = 0;
+            els.complexity.forEach(el => { if(el.checked) basePrice = parseFloat(el.value); });
+            
+            let platMult = 1;
+            let platName = "";
+            els.platform.forEach(el => {
+                if(el.checked) { platMult = parseFloat(el.value); platName = el.dataset.name; }
+            });
+            
+            let pairMult = parseFloat(els.pairs.value);
+            let pairName = els.pairs.options[els.pairs.selectedIndex].text;
+            
+            let addonsSum = 0;
+            els.addons.forEach(el => { if(el.checked) addonsSum += parseFloat(el.value); });
+            
+            let expressMode = false;
+            els.delivery.forEach(el => { if(el.checked && el.value === 'express') expressMode = true; });
+
+            let p1 = basePrice * platMult;
+            let p2 = p1 * pairMult;
+            let subtotal = p2 + addonsSum;
+            
+            if (expressMode) subtotal = subtotal * 1.25;
+            
+            let finalPrice = Math.round(subtotal / 100) * 100;
+            
+            els.resBase.textContent = `₹${basePrice.toLocaleString('en-IN')}`;
+            els.resPlatform.textContent = `${platName} (×${platMult})`;
+            els.resPairs.textContent = `${pairName} (×${pairMult})`;
+            els.resAddons.textContent = addonsSum > 0 ? `+₹${addonsSum.toLocaleString('en-IN')}` : '-';
+            els.resDelivery.textContent = expressMode ? 'Express (+25%)' : 'Standard';
+            
+            const oldTotal = els.resTotal.dataset.val;
+            if (oldTotal != finalPrice) {
+                els.resTotal.dataset.val = finalPrice;
+                els.resTotal.textContent = formatPrice(finalPrice);
+                els.resTotal.classList.remove('number-flip');
+                void els.resTotal.offsetWidth; // trigger reflow
+                els.resTotal.classList.add('number-flip');
+            }
+        }
+
+        [...els.platform, ...els.complexity, ...els.addons, ...els.delivery].forEach(el => {
+            el.addEventListener('change', calculatePrice);
+        });
+        els.pairs.addEventListener('change', calculatePrice);
+
+        calculatePrice();
+
+        els.tncCheckbox.addEventListener('change', (e) => {
+            els.orderFinalBtn.disabled = !e.target.checked;
+        });
+
+        function placeOrder() {
+            const finalPrice = els.resTotal.dataset.val;
+            const msg = `Hi AlgoEdge, I want to place a custom EA order.\n\nEstimated Price: ${formatPrice(finalPrice)}`;
+            const url = `https://wa.me/918827215057?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        function openPaymentModal() {
+            const finalPrice = parseInt(els.resTotal.dataset.val);
+            const advance = Math.round(finalPrice / 2);
+            q('#modal-advance-amount').textContent = formatPrice(advance);
+            
+            const upiString = `upi://pay?pa=algoedge@upi&pn=AlgoEdge&am=${advance}&cu=INR`;
+            q('#upi-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}`;
+            
+            q('#payment-modal').classList.add('show');
+        }
+
+        els.orderCalcBtn.addEventListener('click', () => {
+            document.getElementById('order-agreement').scrollIntoView({behavior: 'smooth'});
+        });
+        els.orderFinalBtn.addEventListener('click', () => {
+            const btn = els.orderFinalBtn;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<svg viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" style="stroke-dasharray: 90, 150; stroke-linecap: round;"></circle></svg> Redirecting...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                window.open('https://docs.google.com/forms/d/e/1FAIpQLScGWE1-Eu9gXUHlvM3CmMiL5oyylDEP61b5yfbDc_OZLy-OQg/viewform?usp=dialog', '_blank');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 800);
+        });
+
+        q('#order-details-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            const name = q('#order-name').value.trim();
+            const email = q('#order-email').value.trim();
+            const phone = q('#order-whatsapp').value.trim();
+            const platform = q('#order-platform').value;
+            const strategy = q('#order-strategy').value.trim();
+            const finalPrice = els.resTotal.dataset.val;
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" style="stroke-dasharray: 90, 150; stroke-linecap: round;"></circle></svg> Processing...';
+
+            try {
+                await registerUserInFirebase(name, email, { phone, platform, strategyDetails: strategy, type: 'order', calculatedPrice: finalPrice });
+                
+                btn.innerHTML = '<svg viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" style="stroke-dasharray: 90, 150; stroke-linecap: round;"></circle></svg> Redirecting to WhatsApp...';
+                
+                setTimeout(() => {
+                    const msg = `*New Custom EA Order*\n\n*Name:* ${name}\n*Email:* ${email}\n*WhatsApp:* ${phone}\n*Platform:* ${platform}\n*Strategy Details:* ${strategy}\n\n*Calculated Price:* ${formatPrice(finalPrice)}`;
+                    const url = `https://wa.me/8827215057?text=${encodeURIComponent(msg)}`;
+                    window.open(url, '_blank');
+                    
+                    q('#order-form-modal').classList.remove('show');
+                    e.target.reset();
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Order →';
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+                alert("Error submitting order: " + error.message.replace('Firebase:', '').trim());
+                btn.disabled = false;
+                btn.textContent = 'Submit Order →';
+            }
+        });
+
+        q('#close-order-modal').addEventListener('click', () => q('#order-form-modal').classList.remove('show'));
+        q('#order-form-modal').addEventListener('click', (e) => {
+            if(e.target.id === 'order-form-modal') q('#order-form-modal').classList.remove('show');
+        });
+
+        q('#btn-calc-scroll').addEventListener('click', () => {
+            document.getElementById('calculator').scrollIntoView({behavior: 'smooth'});
+        });
+        q('#btn-whatsapp-scroll').addEventListener('click', () => {
+            const msg = "Hello, I’m interested in your Algo Trading & EA services. Please share more details.";
+            window.open(`https://wa.me/8827215057?text=${encodeURIComponent(msg)}`, '_blank');
+        });
+
+
+
+        const waitlistForm = q('#waitlist-form');
+        const toast = q('#toast');
+        waitlistForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            waitlistForm.reset();
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        });
+
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            let targetTheme = 'light';
+            if (currentTheme === 'light') {
+                targetTheme = 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            
+            if(targetTheme === 'light') {
+                moonIcon.style.display = 'none';
+                sunIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        });
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged, updateProfile, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCcIfDndmHE6pqsoDUzq23RbEoWHwNiTtM",
+          authDomain: "algo-edge-1bcfe.firebaseapp.com",
+          projectId: "algo-edge-1bcfe",
+          storageBucket: "algo-edge-1bcfe.firebasestorage.app",
+          messagingSenderId: "649865710172",
+          appId: "1:649865710172:web:83d9608e005b5a0e1bb499"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI Elements
+        const authBtn = document.getElementById('auth-btn');
+        const userBadge = document.getElementById('user-badge');
+        const authModal = document.getElementById('auth-modal');
+        const closeAuthModal = document.getElementById('close-auth-modal');
+        const authPhoneForm = document.getElementById('auth-phone-form');
+        const authName = document.getElementById('auth-name');
+        const authPhone = document.getElementById('auth-phone');
+        const authPhoneError = document.getElementById('auth-phone-error');
+        const authSendBtn = document.getElementById('auth-send-btn');
+
+        let pendingName = '';
+
+        // Open/Close Modal
+        authBtn.addEventListener('click', () => {
+             authModal.classList.add('show');
+             authPhoneError.style.display = 'none';
+        });
+        closeAuthModal.addEventListener('click', () => {
+             authModal.classList.remove('show');
+        });
+        authModal.addEventListener('click', (e) => {
+            if (e.target.id === 'auth-modal') authModal.classList.remove('show');
+        });
+
+        // Shared Registration / Backend Logic
+        async function registerUserInFirebase(name, contactInfo, extraData = {}) {
+            let newId;
+            try {
+                const result = await signInAnonymously(auth);
+                if (name) {
+                    await updateProfile(result.user, {
+                        displayName: name
+                    });
+                }
+                newId = result.user.uid;
+            } catch (authErr) {
+                if (authErr.code === 'auth/admin-restricted-operation' || authErr.code === 'auth/operation-not-allowed' || authErr.code === 'auth/network-request-failed') {
+                    console.warn("Auth failed or disabled. Falling back to unauthenticated database write. Error:", authErr.code);
+                    newId = 'reg_' + Date.now() + Math.random().toString(36).substr(2, 5);
+                } else {
+                    throw authErr;
+                }
+            }
+            
+            try {
+                await setDoc(doc(db, 'registrations', newId), {
+                    uid: newId,
+                    contact: contactInfo,
+                    displayName: name || 'Unknown User',
+                    ...extraData,
+                    updatedAt: serverTimestamp(),
+                    createdAt: serverTimestamp()
+                }, { merge: true });
+            } catch (dbErr) {
+                if (dbErr.code === 'permission-denied') {
+                    throw new Error('Database permission denied. Please enable "Anonymous" sign-in in your Firebase Console (Authentication > Sign-in method) or adjust your Firestore rules to allow writes.');
+                }
+                throw dbErr;
+            }
+            return newId;
+        }
+        window.registerUserInFirebase = registerUserInFirebase;
+
+        // Handle Phone Submit (Nav Register)
+        authPhoneForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            pendingName = authName.value.trim();
+            const phoneNumber = authPhone.value.trim();
+
+            authPhoneError.style.display = 'none';
+            authSendBtn.disabled = true;
+            authSendBtn.textContent = 'Confirming...';
+
+            try {
+                await registerUserInFirebase(pendingName, phoneNumber);
+                authModal.classList.remove('show');
+                authPhoneForm.reset();
+                alert("Successfully registered!");
+            } catch (error) {
+                console.error(error);
+                authPhoneError.style.display = 'block';
+                authPhoneError.innerHTML = error.message.replace('Firebase:', '').trim();
+            } finally {
+                authSendBtn.disabled = false;
+                authSendBtn.textContent = 'Confirm';
+            }
+        });
+
+        // Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authBtn.style.display = 'none';
+                userBadge.style.display = 'block';
+                userBadge.textContent = user.displayName ? `Sign Out (${user.displayName})` : 'Sign Out';
+            } else {
+                authBtn.style.display = 'block';
+                userBadge.style.display = 'none';
+            }
+        });
+
+        // Sign Out
+        userBadge.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = 'Signed out successfully.';
+                toast.classList.add('show');
+                setTimeout(() => { toast.classList.remove('show'); toast.textContent = "You're on the list! We'll notify you."; }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
